@@ -14,16 +14,21 @@ To create a `Grid`, simply use
 Grid<int> grid = new(null);
 ```
 
-(Replace `int` with whatever type you want to store in the grid, and `null` with a `(VectorInt2, VectorInt2)` for the inclusive minimum bounds and exclusive maximum bounds of the grid if you want, but you can keep it borderless.)
+(Replace `int` with whatever type you want to store in the grid, and `null` with a `(VectorInt2, VectorInt2)` for the inclusive minimum bounds and exclusive maximum bounds of the grid if you want, but you can also keep it borderless.)
 
 ### Usage
 
-To add, change and remove stuff from a `Grid`, do:
+To add, change and remove items from a `Grid`, use:
 
 ```csharp
 grid[new(4, 4)] = 3;
 grid.Remove(new(4, 4));
 ```
+
+You can (obviously) find the value a point in the dictionary:
+
+```csharp
+int i = grid[new(4, 4)];
 
 You can check the distance of different points from the origin (what "ring" they are in around the origin):
 

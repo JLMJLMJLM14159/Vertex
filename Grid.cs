@@ -92,7 +92,7 @@ namespace Vertex
         {
             MinMaxBounds = minMaxBounds;
             NullableStages = new(0, 4, creationOfNullableStages);
-            GridDictionary = gridDictionary;5
+            GridDictionary = gridDictionary;
         }
 
         public T this[VectorInt2 key]

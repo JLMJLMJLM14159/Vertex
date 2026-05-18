@@ -23,7 +23,7 @@ namespace Vertex
             get => _value;
             private set
             {
-                if (value < Min || value >= Max)
+                if ((Min != null && value < Min) || (Max != null && value >= Max))
                     throw new ArgumentOutOfRangeException(
                         nameof(value),
                         $"Value must be between {Min} (inclusive) and {Max} (exclusive). You tried to change it to {value}."
@@ -35,7 +35,7 @@ namespace Vertex
 
         public BoundedInt(int? min, int? max, int value)
         {
-            if (min >= max)
+            if (min != null && max != null && min >= max)
                 throw new ArgumentException("Min cannot be greater than Max");
 
             Min = min;
@@ -47,7 +47,7 @@ namespace Vertex
         public static implicit operator BoundedInt(int i) => new(null, null, i);
 
         public void AddToThis(BoundedInt bi) => Value += bi.Value;
-        public void SubtractFromThis(BoundedInt bi) => Value += bi.Value;
+        public void SubtractFromThis(BoundedInt bi) => Value -= bi.Value;
     }
 
     [MemoryPackable]
@@ -61,12 +61,14 @@ namespace Vertex
         /// 1 means not null MinMaxBounds, 2 means it's nullable (CAN BE NULLABLE AND THIS MIGHT NOT BE >=2), 3 means each empty point should be null
         /// </summary>
         public BoundedInt NullableStages { get; init; }
-        private Dictionary<VectorInt2, T> GridDictionary { get; set; } = [];
+        [MemoryPackInclude]
+        private Dictionary<VectorInt2, T> GridDictionary { get; set; }
         
         public Grid((VectorInt2, VectorInt2)? minMaxBounds, bool isEmptyPointNull)
         {
             MinMaxBounds = minMaxBounds;
             NullableStages = new(0, 4, 0);
+            GridDictionary = [];
             if (MinMaxBounds != null) {
                 NullableStages.AddToThis(1); 
                 if (!typeof(T).IsValueType || Nullable.GetUnderlyingType(typeof(T)) != null)
@@ -88,11 +90,13 @@ namespace Vertex
         }
 
         [MemoryPackConstructor]
-        public Grid((VectorInt2, VectorInt2)? minMaxBounds, int creationOfNullableStages, Dictionary<VectorInt2, T> gridDictionary)
+        public Grid((VectorInt2, VectorInt2)? minMaxBounds, BoundedInt nullableStages, Dictionary<VectorInt2, T> gridDictionary)
         {
             MinMaxBounds = minMaxBounds;
-            NullableStages = new(0, 4, creationOfNullableStages);
             GridDictionary = gridDictionary;
+            NullableStages = nullableStages;
+
+            if (NullableStages.Min != 0 || NullableStages.Max != 4) { throw new("Stop messing buddy"); }
         }
 
         public T this[VectorInt2 key]
@@ -120,8 +124,7 @@ namespace Vertex
 
         public static implicit operator Dictionary<VectorInt2, T>(Grid<T> grid) => grid.GridDictionary;
 
-        public IEnumerator<KeyValuePair<VectorInt2, T>> GetEnumerator()
-        { foreach (KeyValuePair<VectorInt2, T> kvp in GridDictionary) { yield return kvp; } }
+        public IEnumerator<KeyValuePair<VectorInt2, T>> GetEnumerator() { return GridDictionary.GetEnumerator(); }
 
         IEnumerator<KeyValuePair<VectorInt2, T>> IEnumerable<KeyValuePair<VectorInt2, T>>.GetEnumerator() => GetEnumerator();
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
